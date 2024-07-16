@@ -109,4 +109,10 @@ internal sealed class TestDbContext : DbContext
 
         return base.SaveChanges();
     }
+
+    public void Save()
+    {
+        SaveChanges();
+        ChangeTracker.Clear();
+    }
 }

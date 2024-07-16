@@ -6,8 +6,8 @@ internal class Excerpt : EntityBase
 
     // relational
     public Guid CompositeId { get; set; }
-    public virtual Item? Composite { get; set; }
+    public Item? Composite { get; set; }
 
     public Guid ElementId { get; set; }
-    public virtual Item? Element { get; set; }
+    public Item? Element { get; set; }
 }

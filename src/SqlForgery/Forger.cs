@@ -6,7 +6,7 @@ namespace SqlForgery;
 public sealed class Forger
 {
     private readonly IDictionary<Type, Delegate> _fakingFunctions;
-    private readonly IDictionary<Type, Type[]> _navigations;
+    private readonly IDictionary<Type, NavigationType[]> _navigations;
     private readonly DbContext _dbContext;
     
     public Forger(DbContext dbContext, IDictionary<Type, Delegate> fakingFunctions)
@@ -14,24 +14,45 @@ public sealed class Forger
         _dbContext = dbContext;
         _fakingFunctions = fakingFunctions;
 
-        var entityTypes = _dbContext.Model.GetEntityTypes();
-        _navigations = new Dictionary<Type, Type[]>();
+        var entityTypes = _dbContext.Model.GetEntityTypes().ToArray();
+        _navigations = new Dictionary<Type, NavigationType[]>();
 
         foreach(var entityType in entityTypes)
         {
             var navigations = entityType.GetDeclaredNavigations()
-                .Select(x => x.ClrType)
-                .Where(x => !x.IsGenericType)
+                .Where(x => !x.ClrType.IsGenericType)
                 .ToArray();
 
-            var hasSelfReference = navigations.Any(x => x == entityType.ClrType);
-
-            var requiredNavigations = hasSelfReference
-                ? navigations.Where(x => x != entityType.ClrType).ToArray()
-                : navigations;
+            var navigationTypes = navigations
+                .Select(x => MapNavigationType(entityType, x, entityTypes))
+                .ToArray();
            
-            _navigations.Add(entityType.ClrType, requiredNavigations);
+            _navigations.Add(entityType.ClrType, navigationTypes);
         }
+    }
+
+    private static NavigationType MapNavigationType(IEntityType entityType, INavigation navigation, IEntityType[] allEntityTypes)
+    {
+        var isSelfReferenceRelation = entityType
+            .GetDeclaredNavigations()
+            .Where(x => !x.ClrType.IsGenericType)
+            .Any(x => x.ClrType == entityType.ClrType);
+
+        //var oneToOneRelation = navigation.
+        //    .GetDeclaredNavigations()
+        //    .Where(x => !x.ClrType.IsGenericType)
+        //    .SingleOrDefault(x => x.ClrType == entityType.ClrType);
+
+        var oneToOneRelation = allEntityTypes
+            .Where(x =>
+                x.ClrType == navigation.ClrType &&
+                x.GetDeclaredNavigations().Any(n => n.ClrType == entityType.ClrType))
+            .SingleOrDefault();
+
+        return new(
+            type: navigation.ClrType,
+            required: !isSelfReferenceRelation,
+            substituteProperty: oneToOneRelation != null ? entityType.ClrType : null);
     }
 
     public TEntity Fake<TEntity>(Action<TEntity>? modifier = null)
@@ -46,7 +67,7 @@ public sealed class Forger
         return entity!;
     }
 
-    private object Fake(Type entityType)
+    private object Fake(Type entityType, Type? substituteProperty = null, object? substituteObject = null)
     {
         _ = _fakingFunctions.TryGetValue(entityType, out var fakingFunction);
         if (fakingFunction == null)
@@ -70,32 +91,43 @@ public sealed class Forger
         _ = _navigations.TryGetValue(entityType, out var navigationTypes);
         if(navigationTypes == null)
         {
-            navigationTypes = Array.Empty<Type>();
+            navigationTypes = Array.Empty<NavigationType>();
         }
 
         foreach (var navigationType in navigationTypes)
         {
-            var navigationProperties = entityType.GetProperties()
-                .Where(x => x.PropertyType == navigationType)
-                .ToArray();
-
-            if (navigationProperties.Length == 0)
+            if(!entityType.GetProperties().Any(x => x.PropertyType == navigationType.Type))
             {
                 throw new InvalidOperationException($"Invalid mapping of navigation property array. Navigation type: {navigationType} doesn't exist on entity type: {entityType}");
             }
 
-            foreach (var navigationProperty in navigationProperties)
+            var navigationProperty = entityType.GetProperties()
+                .Where(x =>
+                    x.PropertyType == navigationType.Type &&
+                    x.GetValue(fakedEntity) == null)
+                .FirstOrDefault();
+
+            if (navigationProperty == null || !navigationType.Required)
             {
-                var navigationPropertyValue = navigationProperty.GetValue(fakedEntity);
-                if (navigationPropertyValue == null)
-                {
-                    navigationProperty.SetValue(fakedEntity, Fake(navigationProperty.PropertyType));
-                }
+                continue;
             }
+
+            if(
+                substituteProperty != null &&
+                substituteObject != null &&
+                navigationProperty.PropertyType == substituteProperty)
+            {
+                navigationProperty.SetValue(fakedEntity, substituteObject);
+                continue;
+            }
+
+            var fakedNavigation = navigationType.HasSubstituteProperty()
+                ? Fake(navigationType.Type, fakedEntityType, fakedEntity)
+                : Fake(navigationType.Type);
+
+            navigationProperty.SetValue(fakedEntity, fakedNavigation);
         }
 
         return fakedEntity;
     }
-
-    
 }

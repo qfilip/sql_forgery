@@ -18,7 +18,7 @@ internal class Category : EntityBase
     public string? Name { get; set; }
 
     public Guid? ParentCategoryId { get; set; }
-    public virtual Category? ParentCategory { get; set; }
+    public Category? ParentCategory { get; set; }
 
     public ICollection<Category> ChildCategories { get; set; }
     public ICollection<Item> Items { get; set; }
