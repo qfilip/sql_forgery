@@ -117,6 +117,11 @@ public sealed class Forger
                 substituteObject != null &&
                 navigationProperty.PropertyType == substituteProperty)
             {
+                if(navigationProperty.PropertyType != substituteObject.GetType())
+                {
+                    throw new ArgumentException($"Expected substitute object of type {navigationProperty.PropertyType}, but received {substituteObject.GetType()}");
+                }
+
                 navigationProperty.SetValue(fakedEntity, substituteObject);
                 continue;
             }

@@ -31,6 +31,45 @@ public class Tests
     }
 
     [Fact]
+    public void Relation_OneToOne_MapsCorrectly()
+    {
+        // arrange
+        var price = _sut.Fake<Price>();
+
+        // act
+        _dbContext.Save();
+
+        // assert
+        _dbContext.Prices
+            .Include(x => x.Item)
+            .Single(x => x.Id == price.Id);
+
+        Assert.NotNull(price.Item);
+    }
+
+    [Fact]
+    public void Relation_OneToOne_WithModifier_MapsCorrectly()
+    {
+        // arrange
+        var name = "test"; 
+        var price = _sut.Fake<Price>(x =>
+        {
+            x.Item = _sut.Fake<Item>(x => x.Name = name);
+        });
+
+        // act
+        _dbContext.Save();
+
+        // assert
+        var entity = _dbContext.Prices
+            .Include(x => x.Item)
+            .Single(x => x.Id == price.Id);
+
+        Assert.NotNull(entity.Item);
+        Assert.Equal(name, entity.Item.Name);
+    }
+
+    [Fact]
     public void Relation_OneToMany_DoesntCreateMany()
     {
         // arrange
