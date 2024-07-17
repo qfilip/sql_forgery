@@ -9,14 +9,28 @@
   <PropertyGroup>
     <PackageId>SqlForgery</PackageId>
     <Title>SqlForgery</Title>
-    <Version>0.0.1</Version>
+    <Version>1.0.0</Version>
     <Authors>qfilip</Authors>
     <PackageTags>EntityFramework Core;Data faking; Database; SQL; Relational Database</PackageTags>
     <Description>
       Generate fake data for an SQL database via EntityFramework Core. For more information, visit:
       https://github.com/qfilip/sql_forgery
     </Description>
+    <PackageIcon>sqlForger1.png</PackageIcon>
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/qfilip/sql_forgery</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\files\sqlForger1.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\Readme.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
