@@ -14,7 +14,12 @@ public sealed class Forger
         _dbContext = dbContext;
         _fakingFunctions = fakingFunctions;
 
+        var fakingTypes = _fakingFunctions.Keys;
         var entityTypes = _dbContext.Model.GetEntityTypes().ToArray();
+
+        var wrongTypes = entityTypes
+        if(entityTypes.Contains(x => ))
+
         _navigations = new Dictionary<Type, NavigationType[]>();
 
         foreach(var entityType in entityTypes)
@@ -31,17 +36,23 @@ public sealed class Forger
         }
     }
 
+    private static void CheckForNonDbTypes(IEntityType[] entityTypes, Type[] fakingTypes)
+    {
+        var types = entityTypes.Select(x => x.ClrType).ToArray();
+
+        if(fakingTypes.Any(x => !types.Contains(x)))
+        {
+            throw new 
+        }
+
+    }
+
     private static NavigationType MapNavigationType(IEntityType entityType, INavigation navigation, IEntityType[] allEntityTypes)
     {
         var isSelfReferenceRelation = entityType
             .GetDeclaredNavigations()
             .Where(x => !x.ClrType.IsGenericType)
             .Any(x => x.ClrType == entityType.ClrType);
-
-        //var oneToOneRelation = navigation.
-        //    .GetDeclaredNavigations()
-        //    .Where(x => !x.ClrType.IsGenericType)
-        //    .SingleOrDefault(x => x.ClrType == entityType.ClrType);
 
         var oneToOneRelation = allEntityTypes
             .Where(x =>

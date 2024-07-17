@@ -6,6 +6,18 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>SqlForgery</PackageId>
+    <Title>SqlForgery</Title>
+    <Version>0.0.1</Version>
+    <Authors>qfilip</Authors>
+    <PackageTags>EntityFramework Core;Data faking; Database; SQL; Relational Database</PackageTags>
+    <Description>
+      Generate fake data for an SQL database via EntityFramework Core. For more information, visit:
+      https://github.com/qfilip/sql_forgery
+    </Description>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
   </ItemGroup>

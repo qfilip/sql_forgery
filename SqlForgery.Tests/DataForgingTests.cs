@@ -6,21 +6,14 @@ using Xunit;
 
 namespace SqlForgery.Tests;
 
-public class Tests
+public class DataForgingTests
 {
     private readonly TestDbContext _dbContext;
     private readonly Forger _sut;
-    public Tests()
+    public DataForgingTests()
     {
         _dbContext = new ContextCreator().GetTestDbContext();
         _sut = new(_dbContext, FakingFunctions.Get());
-    }
-
-    [Fact]
-    public void Test()
-    {
-        _sut.Fake<Excerpt>();
-        _dbContext.Save();
     }
 
     [Fact]
@@ -109,6 +102,13 @@ public class Tests
 
         Assert.Equal(category.Name, entity.Name);
         Assert.Equal(category.ParentCategory!.Name, entity.ParentCategory!.Name);
+    }
+
+    [Fact]
+    public void NonDbEntity()
+    {
+        _sut.Fake<NonDbEntity>();
+        _dbContext.Save();
     }
 
     [Fact]
