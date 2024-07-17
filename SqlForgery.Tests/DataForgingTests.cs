@@ -105,13 +105,6 @@ public class DataForgingTests
     }
 
     [Fact]
-    public void NonDbEntity()
-    {
-        _sut.Fake<NonDbEntity>();
-        _dbContext.Save();
-    }
-
-    [Fact]
     public void RequiredRelations_CreatedAutomatically()
     {
         // arrange
@@ -121,6 +114,12 @@ public class DataForgingTests
         _dbContext.Save();
 
         // assert
-        _dbContext.Excerpts.First(x => x.Id == excerpt.Id);
+        var entity = _dbContext.Excerpts
+            .Include(x => x.Element)
+            .Include(x => x.Composite)
+            .First(x => x.Id == excerpt.Id);
+
+        Assert.NotNull(entity.Element);
+        Assert.NotNull(entity.Composite);
     }
 }

@@ -14,12 +14,11 @@ public sealed class Forger
         _dbContext = dbContext;
         _fakingFunctions = fakingFunctions;
 
-        var fakingTypes = _fakingFunctions.Keys;
+        var fakingTypes = _fakingFunctions.Keys.ToArray();
         var entityTypes = _dbContext.Model.GetEntityTypes().ToArray();
-
-        var wrongTypes = entityTypes
-        if(entityTypes.Contains(x => ))
-
+        
+        CheckForNonDbTypes(entityTypes, fakingTypes);
+        
         _navigations = new Dictionary<Type, NavigationType[]>();
 
         foreach(var entityType in entityTypes)
@@ -38,11 +37,15 @@ public sealed class Forger
 
     private static void CheckForNonDbTypes(IEntityType[] entityTypes, Type[] fakingTypes)
     {
-        var types = entityTypes.Select(x => x.ClrType).ToArray();
+        var dbTypes = entityTypes.Select(x => x.ClrType).ToArray();
+        var nonDbTypes = fakingTypes
+            .Where(x => !dbTypes.Contains(x))
+            .ToArray();
 
-        if(fakingTypes.Any(x => !types.Contains(x)))
+        if(nonDbTypes.Any())
         {
-            throw new 
+            var forbidden = string.Join(',', nonDbTypes.Select(x => x.Name));
+            throw new ArgumentException($"Faking functions contain types not present in the database: {forbidden}");
         }
 
     }
