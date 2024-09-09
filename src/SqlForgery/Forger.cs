@@ -5,11 +5,11 @@ namespace SqlForgery;
 
 public sealed class Forger
 {
-    private readonly IDictionary<Type, Delegate> _fakingFunctions;
+    private readonly IDictionary<Type, FakingFunction> _fakingFunctions;
     private readonly IDictionary<Type, NavigationType[]> _navigations;
     private readonly DbContext _dbContext;
     
-    public Forger(DbContext dbContext, IDictionary<Type, Delegate> fakingFunctions)
+    public Forger(DbContext dbContext, IDictionary<Type, FakingFunction> fakingFunctions)
     {
         _dbContext = dbContext;
         _fakingFunctions = fakingFunctions;
@@ -23,12 +23,14 @@ public sealed class Forger
 
         foreach(var entityType in entityTypes)
         {
+            var ignoredTypes = _fakingFunctions[entityType.ClrType].IgnoredTypes;
+
             var navigations = entityType.GetDeclaredNavigations()
                 .Where(x => !x.ClrType.IsGenericType)
                 .ToArray();
 
             var navigationTypes = navigations
-                .Select(x => MapNavigationType(entityType, x, entityTypes))
+                .Select(x => MapNavigationType(entityType, x, entityTypes, ignoredTypes))
                 .ToArray();
            
             _navigations.Add(entityType.ClrType, navigationTypes);
@@ -50,9 +52,21 @@ public sealed class Forger
 
     }
 
-    private static NavigationType MapNavigationType(IEntityType entityType, INavigation navigation, IEntityType[] allEntityTypes)
+    private static NavigationType MapNavigationType(
+        IEntityType entityType,
+        INavigation navigation,
+        IEntityType[] allEntityTypes,
+        Type[] ignoredTypes)
     {
+        var ignored = ignoredTypes.Contains(navigation.ClrType);
+
         var isSelfReferenceRelation = entityType.ClrType == navigation.ClrType;
+
+        if(ignored && isSelfReferenceRelation)
+        {
+            var message = $"Self referencing type {navigation.ClrType} cannot be set as ignored.";
+            throw new ArgumentException(message);
+        }
 
         var oneToOneRelation = allEntityTypes
             .Where(x =>
@@ -62,7 +76,7 @@ public sealed class Forger
 
         return new(
             type: navigation.ClrType,
-            required: !isSelfReferenceRelation,
+            required: ignored ? true : !isSelfReferenceRelation,
             substituteProperty: oneToOneRelation != null ? entityType.ClrType : null);
     }
 
@@ -86,7 +100,7 @@ public sealed class Forger
             throw new ArgumentException($"Faking function for type {entityType}, not found");
         }
 
-        var fakedEntity = fakingFunction.DynamicInvoke();
+        var fakedEntity = fakingFunction.Function.DynamicInvoke();
 
         if (fakedEntity == null)
         {

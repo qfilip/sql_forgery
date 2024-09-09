@@ -9,7 +9,7 @@
   <PropertyGroup>
     <PackageId>SqlForgery</PackageId>
     <Title>SqlForgery</Title>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>qfilip</Authors>
     <PackageTags>EntityFramework Core;Data faking; Database; SQL; Relational Database</PackageTags>
     <Description>
@@ -19,6 +19,7 @@
     <PackageIcon>sqlForger1.png</PackageIcon>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/qfilip/sql_forgery</RepositoryUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
