@@ -52,10 +52,7 @@ public sealed class Forger
 
     private static NavigationType MapNavigationType(IEntityType entityType, INavigation navigation, IEntityType[] allEntityTypes)
     {
-        var isSelfReferenceRelation = entityType
-            .GetDeclaredNavigations()
-            .Where(x => !x.ClrType.IsGenericType)
-            .Any(x => x.ClrType == entityType.ClrType);
+        var isSelfReferenceRelation = entityType.ClrType == navigation.ClrType;
 
         var oneToOneRelation = allEntityTypes
             .Where(x =>

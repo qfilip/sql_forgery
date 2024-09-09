@@ -8,6 +8,7 @@ internal sealed class TestDbContext : DbContext
 {
     public TestDbContext(DbContextOptions<TestDbContext> options) : base(options) {}
 
+    internal DbSet<Company> Compaines { get; set; }
     internal DbSet<Category> Categories { get; set; }
     internal DbSet<Item> Items { get; set; }
     internal DbSet<Excerpt> Excerpts { get; set; }
@@ -16,9 +17,18 @@ internal sealed class TestDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        ConfigureEntity<Company>(modelBuilder, e =>
+        {
+            e.ToTable("Companies");
+        });
+
         ConfigureEntity<Category>(modelBuilder, e =>
         {
             e.Property(x => x.Name).IsRequired();
+
+            e.HasOne(x => x.Company).WithMany(x => x.Categories)
+                .HasForeignKey(x => x.CompanyId)
+                .HasConstraintName($"FK_{nameof(Category)}_{nameof(Company)}");
 
             e.HasOne(x => x.ParentCategory).WithMany(x => x.ChildCategories)
                 .HasForeignKey(x => x.ParentCategoryId)

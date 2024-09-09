@@ -20,6 +20,10 @@ internal sealed class FakingFunctions
         return new Dictionary<Type, Delegate>()
         {
             {
+                typeof(Company),
+                () => MakeEntity(() => new Company())
+            },
+            {
                 typeof(Category),
                 () => MakeEntity(() => new Category { Name = MakeName() })
             },
