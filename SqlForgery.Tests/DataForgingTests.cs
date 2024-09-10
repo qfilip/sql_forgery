@@ -122,4 +122,21 @@ public class DataForgingTests
         Assert.NotNull(entity.Element);
         Assert.NotNull(entity.Composite);
     }
+
+    [Fact]
+    public void JsonFields_NotPopulated()
+    {
+        // arrange
+        var id = _sut.Fake<Item>().Id;
+
+        // act
+        _dbContext.Save();
+
+        // assert
+        var entity = _dbContext.Items
+            .First(x => x.Id == id);
+
+        Assert.Null(entity.Orders);
+        Assert.Null(entity.Details);
+    }
 }

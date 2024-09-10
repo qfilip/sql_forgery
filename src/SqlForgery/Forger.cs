@@ -57,9 +57,13 @@ public sealed class Forger
         IEntityType[] allEntityTypes,
         IEntityType[] ownedEntities)
     {
-        var isOwned = ownedEntities.Contains(navigation.DeclaringEntityType);
-
+        var navigationType = GetUnderlyingType(navigation.ClrType);
+        
+        var isOwned = ownedEntities.Any(x => x.ClrType == navigationType);
+        
         var isSelfReferenceRelation = entityType.ClrType == navigation.ClrType;
+        
+        var required = !isOwned && !isSelfReferenceRelation;
 
         if(isOwned && isSelfReferenceRelation)
         {
@@ -75,8 +79,34 @@ public sealed class Forger
 
         return new(
             type: navigation.ClrType,
-            required: (isOwned || !isSelfReferenceRelation),
+            required: required,
             substituteProperty: oneToOneRelation != null ? entityType.ClrType : null);
+    }
+
+    private static Type GetUnderlyingType(Type type)
+    {
+        var enumerableType = type.GetInterfaces()
+            .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            .FirstOrDefault();
+        
+        if (enumerableType == null)
+        {
+            return type;
+        }
+        
+        var genericArguments = enumerableType.GetGenericArguments();
+        if(genericArguments == null || genericArguments.Length == 0)
+        {
+            throw new ArgumentException($"Couldn't find generic arguments for type {type.Name}");
+        }
+
+        if(genericArguments.Length > 1)
+        {
+            var message = $"Cannot use {type} with SqlForgery. Enumerables with more than one generic parameter not supported.";
+            throw new ArgumentException(message);
+        }
+
+        return genericArguments[0];
     }
 
     public TEntity Fake<TEntity>(Action<TEntity>? modifier = null)

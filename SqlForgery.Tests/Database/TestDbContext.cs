@@ -77,6 +77,9 @@ internal sealed class TestDbContext : DbContext
             e.HasOne(x => x.UnitOfMeasure).WithMany(x => x.Items)
                 .HasForeignKey(x => x.UnitOfMeasureId).IsRequired()
                 .HasConstraintName($"FK_{nameof(UnitOfMeasure)}_{nameof(Item)}");
+
+            e.OwnsMany(x => x.Orders, nav => nav.ToJson());
+            e.OwnsOne(x => x.Details, nav => nav.ToJson());
         });
 
         base.OnModelCreating(modelBuilder);

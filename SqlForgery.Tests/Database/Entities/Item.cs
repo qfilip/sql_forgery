@@ -1,4 +1,6 @@
-﻿namespace SqlForgery.Tests.Database.Entities;
+﻿using SqlForgery.Tests.Database.JsonEntities;
+
+namespace SqlForgery.Tests.Database.Entities;
 
 internal class Item : EntityBase
 {
@@ -22,4 +24,8 @@ internal class Item : EntityBase
 
     public ICollection<Excerpt> ElementExcerpts { get; set; }
     public ICollection<Excerpt> CompositeExcerpts { get; set; }
+
+    // json
+    public ICollection<ItemOrder> Orders { get; set; }
+    public ItemDetails? Details { get; set; }
 }
