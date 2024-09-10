@@ -5,32 +5,31 @@ namespace SqlForgery;
 
 public sealed class Forger
 {
-    private readonly IDictionary<Type, FakingFunction> _fakingFunctions;
+    private readonly IDictionary<Type, Delegate> _fakingFunctions;
     private readonly IDictionary<Type, NavigationType[]> _navigations;
     private readonly DbContext _dbContext;
     
-    public Forger(DbContext dbContext, IDictionary<Type, FakingFunction> fakingFunctions)
+    public Forger(DbContext dbContext, IDictionary<Type, Delegate> fakingFunctions)
     {
         _dbContext = dbContext;
         _fakingFunctions = fakingFunctions;
 
         var fakingTypes = _fakingFunctions.Keys.ToArray();
         var entityTypes = _dbContext.Model.GetEntityTypes().ToArray();
-        
+        var ownedEntities = entityTypes.Where(x => x.IsOwned()).ToArray();
+
         CheckForNonDbTypes(entityTypes, fakingTypes);
         
         _navigations = new Dictionary<Type, NavigationType[]>();
 
         foreach(var entityType in entityTypes)
         {
-            var ignoredTypes = _fakingFunctions[entityType.ClrType].IgnoredTypes;
-
             var navigations = entityType.GetDeclaredNavigations()
                 .Where(x => !x.ClrType.IsGenericType)
                 .ToArray();
 
             var navigationTypes = navigations
-                .Select(x => MapNavigationType(entityType, x, entityTypes, ignoredTypes))
+                .Select(x => MapNavigationType(entityType, x, entityTypes, ownedEntities))
                 .ToArray();
            
             _navigations.Add(entityType.ClrType, navigationTypes);
@@ -56,15 +55,15 @@ public sealed class Forger
         IEntityType entityType,
         INavigation navigation,
         IEntityType[] allEntityTypes,
-        Type[] ignoredTypes)
+        IEntityType[] ownedEntities)
     {
-        var ignored = ignoredTypes.Contains(navigation.ClrType);
+        var isOwned = ownedEntities.Contains(navigation.DeclaringEntityType);
 
         var isSelfReferenceRelation = entityType.ClrType == navigation.ClrType;
 
-        if(ignored && isSelfReferenceRelation)
+        if(isOwned && isSelfReferenceRelation)
         {
-            var message = $"Self referencing type {navigation.ClrType} cannot be set as ignored.";
+            var message = $"Self referencing type {navigation.ClrType} cannot be owned by {entityType.ClrType}";
             throw new ArgumentException(message);
         }
 
@@ -76,7 +75,7 @@ public sealed class Forger
 
         return new(
             type: navigation.ClrType,
-            required: ignored ? true : !isSelfReferenceRelation,
+            required: (isOwned || !isSelfReferenceRelation),
             substituteProperty: oneToOneRelation != null ? entityType.ClrType : null);
     }
 
@@ -100,7 +99,7 @@ public sealed class Forger
             throw new ArgumentException($"Faking function for type {entityType}, not found");
         }
 
-        var fakedEntity = fakingFunction.Function.DynamicInvoke();
+        var fakedEntity = fakingFunction.DynamicInvoke();
 
         if (fakedEntity == null)
         {

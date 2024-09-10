@@ -15,37 +15,37 @@ internal sealed class FakingFunctions
 
         return e;
     }
-    internal static IDictionary<Type, FakingFunction> Get()
+    internal static IDictionary<Type, Delegate> Get()
     {
-        return new Dictionary<Type, FakingFunction>()
+        return new Dictionary<Type, Delegate>()
         {
             {
                 typeof(Company),
-                new(() => MakeEntity(() => new Company()))
+                () => MakeEntity(() => new Company())
             },
             {
                 typeof(Category),
-                new(() => MakeEntity(() => new Category { Name = MakeName() }))
+                () => MakeEntity(() => new Category { Name = MakeName() })
             },
             {
                 typeof(UnitOfMeasure),
-                new(() => MakeEntity(() => new UnitOfMeasure
+                () => MakeEntity(() => new UnitOfMeasure
                 {
                     Name = MakeName(),
                     Symbol = "uom"
-                }))
+                })
             },
             {
                 typeof(Price),
-                new(() => MakeEntity(() => new Price { UnitValue = 1 }))
+                () => MakeEntity(() => new Price { UnitValue = 1 })
             },
             {
                 typeof(Excerpt),
-                new(() => MakeEntity(() => new Excerpt { Quantity = 1 }))
+                () => MakeEntity(() => new Excerpt { Quantity = 1 })
             },
             {
                 typeof(Item),
-                new(() => MakeEntity(() => new Item { Name = MakeName() }))
+                () => MakeEntity(() => new Item { Name = MakeName() })
             }
         };
     }
