@@ -1,10 +1,28 @@
 # SqlForgery
 
+[Versions](#versions)
+
+[Overview](#overview)
+
+
+## <a name="versions"></a> Versions
+
+- **v1.1.0 (latest)**
+    * Added support for json entities.
+
+- **v1.0.1**
+    * Fixed navigation fields population bug.
+    * Updated tests.
+
+- **v1.0.0**
+    * Initial version.
+
+## <a name="overview"></a> Overview
 This is a simple library for faking SQL (relational) data using EntityFramework Core. It is intended for testing purposes only.
 
 I strongly believe that faking relational data is far superior to mocking, even in unit tests. However, SQL relationship constraints can make that process very tedious. This library aims to automate it, by populating navigation properties in the class.
 
-## How it works
+### How it works
 
 Consider the following simple example from EF Core documentation page:
 
