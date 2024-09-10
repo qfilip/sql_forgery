@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SqlForgery.Tests.Database;
 using SqlForgery.Tests.Database.Entities;
+using SqlForgery.Tests.Database.JsonEntities;
 using SqlForgery.Tests.Utils;
 using Xunit;
 
@@ -138,5 +139,38 @@ public class DataForgingTests
 
         Assert.Null(entity.Orders);
         Assert.Null(entity.Details);
+    }
+
+    [Fact]
+    public void JsonFields_CustomlyPopulated()
+    {
+        // arrange
+        var id = _sut.Fake<Item>(x =>
+        {
+            x.Orders =
+            [
+                new() { Quantity = 1 },
+                new() { Quantity = 1 }
+            ];
+            x.Details = new ItemDetails()
+            {
+                Description = "test"
+            };
+        }).Id;
+
+        // act
+        _dbContext.Save();
+
+        // assert
+        var entity = _dbContext.Items
+            .First(x => x.Id == id);
+
+        Assert.Multiple(
+            () => Assert.NotNull(entity.Orders),
+            () => Assert.NotNull(entity.Details),
+            () => Assert.Equal(2, entity.Orders.Count),
+            () => Assert.Equal(2, entity.Orders.Sum(x => x.Quantity)),
+            () => Assert.Equal("test", entity.Details!.Description)
+        );
     }
 }
