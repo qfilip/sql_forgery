@@ -69,13 +69,21 @@ In this example `Blog.Posts` and `Post.Blog` are navigational properties. Since 
 SqlForgery is unopinionated how you will fake the data. You must supply `IDictionary<Type, Delegate>` for each `DbSet<T>` class, where `Type` is class you wish to fake, and `Delegate` a function that produces faked object. Example:
 
 ```csharp
+// keep IDs unique (or use Guids)
+private static int idCount = 0;
+private static int GetId()
+{
+    idCount++;
+    return idCount;
+}
+
 var fakingFunctions = new Dictionary<Type, Delegate>()
 {
     {
         typeof(Blog),
         () => new Blog
         {
-            BlogId = 1,
+            BlogId = GetId(),
             Url = "http://blog.com",
             Rating = 5
         }
@@ -84,8 +92,8 @@ var fakingFunctions = new Dictionary<Type, Delegate>()
        typeof(Post),
         () => new Post
         {
-            PostId = 1
-            Title = "test"
+            PostId = GetId(),
+            Title = "test",
             Content = "content"
         }
     }
