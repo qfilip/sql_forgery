@@ -1,4 +1,5 @@
-﻿using SqlForgery.Tests.Database.Entities;
+﻿using SqlForgery.Tests.Database.Abstractions;
+using SqlForgery.Tests.Database.Entities;
 
 namespace SqlForgery.Tests.Utils;
 
@@ -6,15 +7,33 @@ internal sealed class FakingFunctions
 {
     private static DateTime Now = new DateTime(2000, 1, 1);
     private static string MakeName() => $"test-{Guid.NewGuid().ToString("n").Substring(0, 6)}";
-    public static T MakeEntity<T>(Func<T> retn) where T : EntityBase
+    public static T MakeEntity<T>(Func<T> retn) where T : IPkey<Guid>, IAuditable
     {
         var e = retn();
         e.Id = e.Id != Guid.Empty ? e.Id : Guid.NewGuid();
-        e.CreatedAt = Now;
-        e.ModifiedAt = Now;
+
+        e.AuditRecord = new()
+        {
+            CreatedAt = Now,
+            ModifiedAt = Now
+        };
 
         return e;
     }
+
+    public static T MakeEntityWithCustomKey<T>(Func<T> retn) where T : IAuditable
+    {
+        var e = retn();
+
+        e.AuditRecord = new()
+        {
+            CreatedAt = Now,
+            ModifiedAt = Now
+        };
+
+        return e;
+    }
+
     internal static IDictionary<Type, Delegate> Get()
     {
         return new Dictionary<Type, Delegate>()
@@ -41,7 +60,7 @@ internal sealed class FakingFunctions
             },
             {
                 typeof(Excerpt),
-                () => MakeEntity(() => new Excerpt { Quantity = 1 })
+                () => MakeEntityWithCustomKey(() => new Excerpt { Quantity = 1 })
             },
             {
                 typeof(Item),

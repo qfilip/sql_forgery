@@ -9,7 +9,7 @@
   <PropertyGroup>
     <PackageId>SqlForgery</PackageId>
     <Title>SqlForgery</Title>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>qfilip</Authors>
     <PackageTags>EntityFramework Core;Data faking; Database; SQL; Relational Database</PackageTags>
     <Description>

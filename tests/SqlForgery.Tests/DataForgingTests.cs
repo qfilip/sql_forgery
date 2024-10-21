@@ -118,7 +118,9 @@ public class DataForgingTests
         var entity = _dbContext.Excerpts
             .Include(x => x.Element)
             .Include(x => x.Composite)
-            .First(x => x.Id == excerpt.Id);
+            .First(x => 
+                x.CompositeId == excerpt.Composite!.Id &&
+                x.ElementId == excerpt.Element!.Id);
 
         Assert.NotNull(entity.Element);
         Assert.NotNull(entity.Composite);
@@ -137,7 +139,7 @@ public class DataForgingTests
         var entity = _dbContext.Items
             .First(x => x.Id == id);
 
-        Assert.Null(entity.Orders);
+        Assert.Equal(0, entity.Orders.Count);
         Assert.Null(entity.Details);
     }
 

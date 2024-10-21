@@ -32,7 +32,7 @@ public sealed class Forger
                 .Select(x => MapNavigationType(entityType, x, entityTypes, ownedEntities))
                 .ToArray();
            
-            _navigations.Add(entityType.ClrType, navigationTypes);
+            _navigations.TryAdd(entityType.ClrType, navigationTypes);
         }
     }
 

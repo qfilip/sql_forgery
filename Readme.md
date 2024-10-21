@@ -7,7 +7,10 @@
 
 ## <a name="versions"></a> Versions
 
-- **v1.1.0 (latest)**
+- **v1.2.0 (latest)**
+    * Added support for owned types.
+    
+- **v1.1.0**
     * Added support for json entities.
 
 - **v1.0.1**

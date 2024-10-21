@@ -1,7 +1,12 @@
-﻿namespace SqlForgery.Tests.Database.Entities;
+﻿using SqlForgery.Tests.Database.Abstractions;
+using SqlForgery.Tests.Database.Records;
 
-internal class Category : EntityBase
+namespace SqlForgery.Tests.Database.Entities;
+
+internal class Category : IPkey<Guid>, IAuditable
 {
+    public Guid Id { get; set; }
+    public AuditRecord AuditRecord { get; set; } = new();
     public Category()
     {
         ChildCategories = new HashSet<Category>();

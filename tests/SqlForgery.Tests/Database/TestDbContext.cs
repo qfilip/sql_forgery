@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SqlForgery.Tests.Database.Abstractions;
 using SqlForgery.Tests.Database.Entities;
 
 namespace SqlForgery.Tests.Database;
@@ -47,7 +48,7 @@ internal sealed class TestDbContext : DbContext
             e.HasOne(x => x.Element).WithMany(x => x.ElementExcerpts)
                 .HasForeignKey(x => x.ElementId).IsRequired()
                 .HasConstraintName($"FK_Element{nameof(Item)}_{nameof(Excerpt)}");
-        }, customKey: true);
+        });
 
         ConfigureEntity<UnitOfMeasure>(modelBuilder, e =>
         {
@@ -85,16 +86,27 @@ internal sealed class TestDbContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    private void ConfigureEntity<T>(ModelBuilder mb, Action<EntityTypeBuilder<T>>? customConfiguration = null, bool customKey = false) where T : EntityBase
+    private void ConfigureEntity<TEntity>(ModelBuilder mb, Action<EntityTypeBuilder<TEntity>>? customConfiguration = null)
+        where TEntity : class
     {
-        var name = typeof(T).Name;
-        mb.Entity<T>(e =>
+        ConfigureEntity<TEntity, Guid>(mb, customConfiguration);
+    }
+
+    private void ConfigureEntity<TEntity, TPkey>(ModelBuilder mb, Action<EntityTypeBuilder<TEntity>>? customConfiguration = null)
+        where TEntity : class
+        where TPkey : struct
+    {
+        var type = typeof(TEntity);
+        mb.Entity<TEntity>(e =>
         {
-            e.ToTable(name);
-            
-            if (!customKey)
-                e.HasKey(x => x.Id);
-            
+            e.ToTable(type.Name);
+
+            if (typeof(IPkey<TPkey>).IsAssignableFrom(type))
+                e.HasKey(x => ((IPkey<TPkey>)x).Id);
+
+            if (typeof(IAuditable).IsAssignableFrom(type))
+                e.OwnsOne(x => ((IAuditable)x).AuditRecord);
+
             customConfiguration?.Invoke(e);
         });
     }
@@ -107,16 +119,21 @@ internal sealed class TestDbContext : DbContext
 
         foreach (var entry in entries)
         {
-            if (entry.State == EntityState.Added && entry.Entity is EntityBase added)
+            if (entry.State == EntityState.Added && entry.Entity is IAuditable added)
             {
-                added.Id = added.Id == Guid.Empty ? Guid.NewGuid() : added.Id;
-                added.CreatedAt = now;
-                added.ModifiedAt = now;
+                if(entry.Entity is IPkey<Guid> keyed)
+                    keyed.Id = keyed.Id == Guid.Empty ? Guid.NewGuid() : keyed.Id;
+                
+                added.AuditRecord = new()
+                {
+                    CreatedAt = now,
+                    ModifiedAt = now
+                };
 
             }
-            else if (entry.State == EntityState.Modified && entry.Entity is EntityBase modded)
+            else if (entry.State == EntityState.Modified && entry.Entity is IAuditable modded)
             {
-                modded.ModifiedAt = now;
+                modded.AuditRecord.ModifiedAt = now;
             }
         }
 

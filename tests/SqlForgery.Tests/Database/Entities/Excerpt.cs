@@ -1,7 +1,11 @@
-﻿namespace SqlForgery.Tests.Database.Entities;
+﻿using SqlForgery.Tests.Database.Abstractions;
+using SqlForgery.Tests.Database.Records;
 
-internal class Excerpt : EntityBase
+namespace SqlForgery.Tests.Database.Entities;
+
+internal class Excerpt : IAuditable
 {
+    public AuditRecord AuditRecord { get; set; } = new();
     public double Quantity { get; set; }
 
     // relational

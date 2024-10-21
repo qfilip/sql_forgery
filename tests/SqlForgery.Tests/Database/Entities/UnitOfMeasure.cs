@@ -1,7 +1,12 @@
-﻿namespace SqlForgery.Tests.Database.Entities;
+﻿using SqlForgery.Tests.Database.Abstractions;
+using SqlForgery.Tests.Database.Records;
 
-internal class UnitOfMeasure : EntityBase
+namespace SqlForgery.Tests.Database.Entities;
+
+internal class UnitOfMeasure : IPkey<Guid>, IAuditable
 {
+    public Guid Id { get; set; }
+    public AuditRecord AuditRecord { get; set; } = new();
     public UnitOfMeasure()
     {
         Items = new HashSet<Item>();
