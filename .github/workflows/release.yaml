@@ -14,8 +14,11 @@ jobs:
             #     with:
             #         dotnet-version: '9.x'
             -
+                name: Build project
+                run: dotnet build src/SqlForgery/SqlForgery.csproj -c Release
+            -
                 name: Create nupkg
-                run: dotnet pack --output .output -c Release
+                run: dotnet pack --output .output
             -
                 name: Publish to nuget
                 env:
