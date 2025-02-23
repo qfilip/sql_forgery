@@ -9,7 +9,7 @@
   <PropertyGroup>
     <PackageId>SqlForgery</PackageId>
     <Title>SqlForgery</Title>
-    <Version>1.2.0</Version>
+    <Version>1.2.0-ef.9</Version>
     <Authors>qfilip</Authors>
     <PackageTags>EntityFramework Core;Data faking; Database; SQL; Relational Database</PackageTags>
     <Description>
@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2" />
   </ItemGroup>
 
 </Project>
